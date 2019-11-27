@@ -4,16 +4,11 @@
 # of namespaces.
 # Avoids having to weird-encode everything passed to sh -c as a one liner.
 
-# Get line number of inner script
-inner=$(awk '/^# START/ {print NR}' $0)
+# Find the mount point for the current container
+script="$(grep -o "[^=]*diff" /etc/mtab|sed "s/diff/merged/")/usr/local/bin/host.sh"
 
-# Enter the namespaces of the host &
-# Execute the inner script
-nsenter -t 1 -m -u -n -i -- sh -c "$(tail -n +$inner $0)"
+# Enter the namespaces of the host & execute the script
+nsenter -t 1 -m -u -n -i -- sh -c $script
 
 # Pass the return code out
 exit $?
-
-# START OF INNER SCRIPT
-script="$(grep -o "[^ ]*merged")/usr/local/bin/host.sh /etc/mtab"
-exec $script
